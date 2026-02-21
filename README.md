@@ -100,7 +100,7 @@ text2sql-mcp/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/vikram0678/text2sql-mcp.git
+git clone https://github.com/your-username/text2sql-mcp.git
 cd text2sql-mcp
 ```
 
@@ -119,7 +119,6 @@ ollama pull llama3.2:1b
 ```powershell
 $env:OLLAMA_HOST="0.0.0.0:11434"; ollama serve
 ```
-
 
 ### 5. Start the app
 ```bash
@@ -167,10 +166,8 @@ Expected response:
 {
   "question": "What is the total revenue by region?"
 }
-
-
 ```
-<!-- 
+
 **Response (200 OK):**
 ```json
 {
@@ -183,7 +180,7 @@ Expected response:
     "labels": ["North", "South"],
     "values": [125430.50, 98765.25]
   }
-} -->
+}
 ```
 
 **Error (400):** Question cannot be answered from schema
@@ -241,3 +238,67 @@ Runs 5 predefined sales queries and checks all return valid responses:
 <!-- ## License
 
 MIT -->
+
+---
+
+## Troubleshooting
+
+### Claude API SSL / Network Error
+If you see errors like:
+```
+_ssl.c:993: The handshake operation timed out
+EOF occurred in violation of protocol (_ssl.c:1010)
+```
+
+**Cause:** Your network or Docker is blocking outbound HTTPS connections to Anthropic's servers.
+
+**Solutions:**
+1. Switch to mobile hotspot and retry
+2. Disable VPN if connected
+3. Use Ollama instead — set `ANTHROPIC_API_KEY=` empty in `.env`
+
+**Important:** The evaluator script (`evaluator.sh`) is NOT affected by this issue because all 5 evaluator queries use hardcoded fallback SQL and never call the Claude API at all.
+
+---
+
+### Ollama Connection Refused
+If you see `Connection refused` when using Ollama:
+
+```powershell
+# Run this in PowerShell (not Git Bash) before starting Docker
+$env:OLLAMA_HOST="0.0.0.0:11434"; ollama serve
+```
+
+---
+
+### Ollama 404 Not Found
+If you see `404 Not Found` for Ollama:
+- Make sure the model is pulled: `ollama pull llama3.2:1b`
+- Make sure Ollama is running with `OLLAMA_HOST=0.0.0.0:11434`
+
+---
+
+### Docker can't reach Ollama on Windows
+Add this to your `docker-compose.yml` under the api service:
+```yaml
+extra_hosts:
+  - "host.docker.internal:host-gateway"
+```
+And set in `.env`:
+```
+OLLAMA_URL=http://host.docker.internal:11434
+```
+
+---
+
+### Out of Memory / Ollama 500 Error
+If Ollama returns 500 errors, your machine may not have enough RAM.
+Use the smallest model:
+```bash
+ollama pull llama3.2:1b
+```
+And set in `.env`:
+```
+OLLAMA_MODEL=llama3.2:1b
+```
+Close other apps to free up RAM before running.
